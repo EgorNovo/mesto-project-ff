@@ -16,7 +16,7 @@ function createCard(name, link, deleteFunc) {
   cardImage.alt = `Фотография путишествия. Локация: ${name}`;
   card.querySelector('.card__title').textContent = name;
 
-  addCard(card);
+  return card
 }
 
 // @todo: Функция удаления карточки
@@ -24,9 +24,9 @@ function deleteCard(card) {
   card.remove();
 }
 
-function addCard(card) {
-  cardList.append(card)
+function addCard(name, link) {
+  cardList.append(createCard(name, link, deleteCard))
 }
 
 // @todo: Вывести карточки на страницу
-initialCards.forEach( card => createCard(card.name, card.link, deleteCard))
+initialCards.forEach( card => addCard(card.name, card.link))
