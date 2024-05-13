@@ -1,83 +1,43 @@
-import { addCard, createCard, deleteCard } from './script/card.js'
+import { createCard, deleteCard, likeCard } from './script/card.js'
 import initialCards from './script/cards.js'
 
-import { openModal, closeModal , initBlock } from './script/modal.js'
+import { openModal, closeModal } from './script/modal.js'
 
 import './index.css'
 
 /* Работа с card элементами */
-// @todo: DOM узлы
 const cardList = document.querySelector(".places__list");
-// @todo: Темплейт карточки
 const cardTemplate = document.querySelector("#card-template").content;
 
-// @todo: Вывести карточки на страницу
-initialCards.forEach( card => addCard(card.name, card.link, deleteCard, createCard, cardTemplate, cardList));
-
-/* Работа с popup элементами */
-
-//Редкатирование профиля
-const profileDOM = initBlock('.popup_type_edit','.profile__edit-button') 
-//output: [div.popup.popup_type_edit, button.profile__edit-button, button.popup__close]
-
-//Закрываем popup по нажатию на оверлей
-profileDOM[0].addEventListener('click', event => {
-    if (event.target.classList.contains('popup')) closeModal(profileDOM[0])
-  }
+initialCards.forEach( card => 
+  cardList.prepend(createCard(card.name, card.link, deleteCard, cardTemplate, openCard, likeCard))
 );
-
-//Открываем popup на кнопку редактирования
-profileDOM[1].addEventListener('click', event => openModal(profileDOM[0]));
-//Закрываем при нажатии крестика
-profileDOM[2].addEventListener('click', event => closeModal(profileDOM[0]));
-
-//Добавление карточки
-const addCardDOM = initBlock('.popup_type_new-card','.profile__add-button')
-
-//Закрываем popup по нажатию на оверлей
-addCardDOM[0].addEventListener('click', event => {
-    if (event.target.classList.contains('popup')) closeModal(addCardDOM[0])
-  }
-);
-
-//Открываем popup на кнопку редактирования
-addCardDOM[1].addEventListener('click', event => openModal(addCardDOM[0]));
-//Закрываем при нажатии крестика
-addCardDOM[2].addEventListener('click', event => closeModal(addCardDOM[0]));
-
-//Открываем popup на кнопку '+'
-document.addEventListener('keydown', event => {
-    if (event.key === "+") {
-      openModal(addCardDOM[0]);
-    }
-  }
-);
-
-//Добавлене класса анимации к картинке 
-document.querySelector('.popup_type_image').classList.add('popup_is-animated');
 
 /* Работа с формами */
-//Profile
 const formElement = document.forms['edit-profile'];
-
 const nameInput = formElement.elements.name;
 const jobInput = formElement.elements.description;
 
-function handleFormSubmit(evt) {
+const title = document.querySelector('.profile__title');
+const profileImg = document.querySelector('.profile__image');
+      profileImg.style['flex-shrink'] = '0';
+
+const descripion = document.querySelector('.profile__description');
+
+//Profile
+function handleFormProfileSubmit(evt) {
   evt.preventDefault();
 
-  const title = document.querySelector('.profile__title');
   title.textContent = nameInput.value;
   nameInput.value = '';
 
-  const descripion = document.querySelector('.profile__description');
   descripion.textContent = jobInput.value;
   jobInput.value = '';
 
-  closeModal(profileDOM[0]);
+  closeModal(popupProfile);
 }
 
-formElement.addEventListener('submit', handleFormSubmit)
+formElement.addEventListener('submit', handleFormProfileSubmit)
 
 //Card
 const formElementCard = document.forms['new-place'];
@@ -85,16 +45,84 @@ const formElementCard = document.forms['new-place'];
 const nameInputCard = formElementCard.elements['place-name'];
 const linkInputCard = formElementCard.elements.link;
 
-function handleFormSubmitCard(evt) {
+function handleFormCardSubmitCard(evt) {
   evt.preventDefault();
 
-  addCard(nameInputCard.value, linkInputCard.value, deleteCard, createCard, cardTemplate, cardList)
+  cardList.prepend(createCard(nameInputCard.value, linkInputCard.value, deleteCard, cardTemplate, openCard, likeCard))
 
   nameInputCard.value = '';
   linkInputCard.value = '';
 
-  closeModal(addCardDOM[0]);
+  closeModal(popupCard);
 }
 
-formElementCard.addEventListener('submit', handleFormSubmitCard)
+formElementCard.addEventListener('submit', handleFormCardSubmitCard)
 
+/* Работа с popup элементами */
+//Редкатирование профиля
+const popupProfile = document.querySelector('.popup_type_edit');
+popupProfile.classList.add('popup_is-animated');
+
+const popupProfileOpenButton = document.querySelector('.profile__edit-button');
+const popupProfileCloseButton = popupProfile.querySelector('.popup__close');
+
+popupProfile.addEventListener('click', event => {
+    if (event.target.classList.contains('popup')) closeModal(popupProfile)
+  }
+);
+
+popupProfileOpenButton.addEventListener('click', event => {
+  nameInput.value = title.textContent;
+  jobInput.value = descripion.textContent;
+  openModal(popupProfile);
+});
+
+popupProfileCloseButton.addEventListener('click', event => closeModal(popupProfile));
+
+//Добавление карточки
+const popupCard = document.querySelector('.popup_type_new-card');
+popupCard.classList.add('popup_is-animated');
+
+const popupCardOpenButton = document.querySelector('.profile__add-button');
+      popupCardOpenButton.style['flex-shrink'] = '0';
+
+const popupCardCloseButton = popupCard.querySelector('.popup__close');
+
+popupCard.addEventListener('click', event => {
+    if (event.target.classList.contains('popup')) closeModal(popupCard)
+  }
+);
+
+popupCardOpenButton.addEventListener('click', event => openModal(popupCard));
+popupCardCloseButton.addEventListener('click', event => closeModal(popupCard));
+
+document.addEventListener('keydown', event => {
+    if (event.key === "+") {
+      openModal(popupCard);
+    }
+  }
+);
+
+//Popup картинки 
+const popupImage = document.querySelector('.popup_type_image');
+popupImage.classList.add('popup_is-animated');
+
+const popupImageSrc = popupImage.querySelector('.popup__image');
+const popupImageCaption = popupImage.querySelector('.popup__caption');
+const popupImageCloseButton = popupImage.querySelector('.popup__close');
+
+popupImageCloseButton.addEventListener('click', ()=> {
+  closeModal(popupImage);
+});
+
+popupImage.addEventListener('click', event => {
+  if (event.target.classList.contains('popup')) closeModal(popupImage);
+});
+
+function openCard(src, alt) {
+  popupImageSrc.src = src;
+  popupImageSrc.alt = alt;
+  popupImageCaption.textContent = alt;
+
+  openModal(popupImage);
+};
