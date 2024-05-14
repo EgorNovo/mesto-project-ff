@@ -14,6 +14,7 @@
   transition: 0.3s;
   cursor: pointer;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .profile__add-button:hover {

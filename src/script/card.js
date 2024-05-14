@@ -1,9 +1,7 @@
 // @todo: Функция создания карточки
 export function createCard(name, link, deleteFunc, tepmplate, openFunc, likeFunc) {
   const card = tepmplate.querySelector('.card').cloneNode(true);
-
   const cardImage = card.querySelector('.card__image');
-  cardImage.addEventListener('click', event => openFunc(link, `Фотография путишествия. Локация: ${name}`));
 
   const deleteButton = card.querySelector('.card__delete-button');
   deleteButton.addEventListener('click', () => deleteFunc(card)); 
@@ -12,18 +10,10 @@ export function createCard(name, link, deleteFunc, tepmplate, openFunc, likeFunc
   likeButton.addEventListener('click', () => likeFunc(likeButton)); 
 
   cardImage.src = link;
-  cardImage.onerror = () => {
-    cardImage.alt = `Фотография не найдена 😔`;
+  cardImage.alt = `Фотография путишествия. Локация: ${name}`;
 
-    cardImage.style.cssText += `
-      display: block;
-      visibility: hidden;
-      pointer-events: none;
-      `
-  }
-
-  cardImage.oneload = () => {
-    cardImage.alt = `Фотография путишествия. Локация: ${name}`;
+  cardImage.onload = () => {
+    cardImage.addEventListener('click', event => openFunc(link, `Фотография путишествия. Локация: ${name}`));
   }
 
   card.querySelector('.card__title').textContent = name;

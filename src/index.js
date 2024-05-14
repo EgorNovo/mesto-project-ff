@@ -19,8 +19,6 @@ const nameInput = formElement.elements.name;
 const jobInput = formElement.elements.description;
 
 const title = document.querySelector('.profile__title');
-const profileImg = document.querySelector('.profile__image');
-      profileImg.style['flex-shrink'] = '0';
 
 const descripion = document.querySelector('.profile__description');
 
@@ -84,8 +82,6 @@ const popupCard = document.querySelector('.popup_type_new-card');
 popupCard.classList.add('popup_is-animated');
 
 const popupCardOpenButton = document.querySelector('.profile__add-button');
-      popupCardOpenButton.style['flex-shrink'] = '0';
-
 const popupCardCloseButton = popupCard.querySelector('.popup__close');
 
 popupCard.addEventListener('click', event => {
