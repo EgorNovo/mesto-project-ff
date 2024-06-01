@@ -1,6 +1,6 @@
 import { createCard, deleteCard, likeCard } from './script/card.js'
+import { enableValidation } from './script/validation.js'
 import initialCards from './script/cards.js'
-
 import { openModal, closeModal } from './script/modal.js'
 
 import './index.css'
@@ -13,16 +13,39 @@ initialCards.forEach( card =>
   cardList.prepend(createCard(card.name, card.link, deleteCard, cardTemplate, openCard, likeCard))
 );
 
+/*Валидация форм */
+const validationConfig = {
+  formSelector: '.popup__form',
+  inputSelector: '.popup__input',
+  submitButtonSelector: '.popup__button',
+  inactiveButtonClass: 'popup__button_disabled',
+  inputErrorClass: 'popup__input_type_error',
+  errorClass: 'popup__error_visible'
+};
+
+enableValidation(validationConfig);
+
+const clearValidation = (form, validationConfig) => {
+  const inputElement = form.querySelectorAll(validationConfig.inputSelector);
+
+  inputElement.forEach( element => {
+    const errorElement = form.querySelector(`.${element.name}-error`);
+
+    errorElement.classList.remove(validationConfig.errorClass);
+    element.classList.remove(validationConfig.inputErrorClass);
+    errorElement.textContent = '';
+  })
+}
+
 /* Работа с формами */
 const formElement = document.forms['edit-profile'];
 const nameInput = formElement.elements.name;
 const jobInput = formElement.elements.description;
 
 const title = document.querySelector('.profile__title');
-
 const descripion = document.querySelector('.profile__description');
 
-//Profile
+//Profile submit
 function handleFormProfileSubmit(evt) {
   evt.preventDefault();
 
@@ -32,12 +55,13 @@ function handleFormProfileSubmit(evt) {
   descripion.textContent = jobInput.value;
   jobInput.value = '';
 
+  clearValidation(popupProfile, validationConfig);
   closeModal(popupProfile);
 }
 
 formElement.addEventListener('submit', handleFormProfileSubmit)
 
-//Card
+//Card submit
 const formElementCard = document.forms['new-place'];
 
 const nameInputCard = formElementCard.elements['place-name'];
@@ -51,10 +75,11 @@ function handleFormCardSubmitCard(evt) {
   nameInputCard.value = '';
   linkInputCard.value = '';
 
+  clearValidation(popupCard, validationConfig);
   closeModal(popupCard);
 }
 
-formElementCard.addEventListener('submit', handleFormCardSubmitCard)
+formElementCard.addEventListener('submit', handleFormCardSubmitCard);
 
 /* Работа с popup элементами */
 //Редкатирование профиля
@@ -65,17 +90,23 @@ const popupProfileOpenButton = document.querySelector('.profile__edit-button');
 const popupProfileCloseButton = popupProfile.querySelector('.popup__close');
 
 popupProfile.addEventListener('click', event => {
-    if (event.target.classList.contains('popup')) closeModal(popupProfile)
+    if (event.target.classList.contains('popup')) {
+      clearValidation(popupProfile, validationConfig);
+      closeModal(popupProfile)
+    }
   }
 );
 
-popupProfileOpenButton.addEventListener('click', event => {
+popupProfileOpenButton.addEventListener('click', () => {
   nameInput.value = title.textContent;
   jobInput.value = descripion.textContent;
   openModal(popupProfile);
 });
 
-popupProfileCloseButton.addEventListener('click', event => closeModal(popupProfile));
+popupProfileCloseButton.addEventListener('click', () => {
+  clearValidation(popupProfile, validationConfig);
+  closeModal(popupProfile);
+});
 
 //Добавление карточки
 const popupCard = document.querySelector('.popup_type_new-card');
@@ -85,12 +116,16 @@ const popupCardOpenButton = document.querySelector('.profile__add-button');
 const popupCardCloseButton = popupCard.querySelector('.popup__close');
 
 popupCard.addEventListener('click', event => {
-    if (event.target.classList.contains('popup')) closeModal(popupCard)
+    if (event.target.classList.contains('popup')) {
+      closeModal(popupCard);
+    }
   }
 );
 
-popupCardOpenButton.addEventListener('click', event => openModal(popupCard));
-popupCardCloseButton.addEventListener('click', event => closeModal(popupCard));
+popupCardOpenButton.addEventListener('click', () => openModal(popupCard));
+popupCardCloseButton.addEventListener('click', () => {
+  closeModal(popupCard)
+});
 
 document.addEventListener('keydown', event => {
     if (event.key === "+") {
@@ -107,7 +142,7 @@ const popupImageSrc = popupImage.querySelector('.popup__image');
 const popupImageCaption = popupImage.querySelector('.popup__caption');
 const popupImageCloseButton = popupImage.querySelector('.popup__close');
 
-popupImageCloseButton.addEventListener('click', ()=> {
+popupImageCloseButton.addEventListener('click', () => {
   closeModal(popupImage);
 });
 
