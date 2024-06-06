@@ -1,7 +1,7 @@
 # Проектная работа Mesto
 ------------------------
 ## Проект на GH-pages
-https://github.com/EgorNovo/mesto-project-ff.git
+https://egornovo.github.io/mesto-project-ff/
 
 ## Репозиторий
 https://github.com/EgorNovo/mesto-project-ff
