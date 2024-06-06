@@ -1,5 +1,4 @@
 export const enableValidation = (configuration) => {
-
   const showInputError = (formElement, inputElement, errorMessage) => {
     const errorElement = formElement.querySelector(`.${inputElement.name}-error`);
     errorElement.classList.add(configuration.errorClass);
@@ -35,8 +34,10 @@ export const enableValidation = (configuration) => {
   const toggleButtonState = (inputList, buttonElement) => {
     if(hasInvalidInput(inputList)) {
       buttonElement.classList.add(configuration.inactiveButtonClass);
+      buttonElement.disabled = true;
     } else {
       buttonElement.classList.remove(configuration.inactiveButtonClass);
+      buttonElement.disabled = false;
     }
   }
 
@@ -62,5 +63,17 @@ export const enableValidation = (configuration) => {
     })
 
     setEventListener(formElement);
+  })
+}
+
+export const clearValidation = (form, validationConfig) => {
+  const inputElement = form.querySelectorAll(validationConfig.inputSelector);
+
+  inputElement.forEach( element => {
+    const errorElement = form.querySelector(`.${element.name}-error`);
+
+    errorElement.classList.remove(validationConfig.errorClass);
+    element.classList.remove(validationConfig.inputErrorClass);
+    errorElement.textContent = '';
   })
 }

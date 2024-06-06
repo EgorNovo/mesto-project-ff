@@ -1,12 +1,12 @@
 import { createCard } from './script/card.js'
-import { enableValidation } from './script/validation.js'
+import { enableValidation, clearValidation } from './script/validation.js'
 import { openModal, closeModal } from './script/modal.js'
 import { getInitialCards, getUserInfo, updateUserInfo, addNewCard, deleteCard, likeCardAdd, updateProfileImg } from './script/api.js'
 
-import { initialCards } from './script/cards.js'
 import './index.css'
 
 let userID = '';
+let cardDelete, idDelete;
 
 /* DOC элементы для работы с card*/
 const cardList = document.querySelector(".places__list");
@@ -14,15 +14,18 @@ const cardTemplate = document.querySelector("#card-template").content;
 
 /* DOC элементы для работы с формами*/
 /* Форма профиля*/
-const formElement = document.forms['edit-profile'];
-const nameInput = formElement.elements.name;
-const jobInput = formElement.elements.description;
+const formElementProfile = document.forms['edit-profile'];
+const fornElementProfileButton = formElementProfile.querySelector('.popup__button');
+const nameInput = formElementProfile.elements.name;
+const jobInput = formElementProfile.elements.description;
 /* Форма карточки*/
 const formElementCard = document.forms['new-place'];
+const formElementCardButton = formElementCard.querySelector('.popup__button')
 const nameInputCard = formElementCard.elements['place-name'];
 const linkInputCard = formElementCard.elements.link;
 /* Форма аватара*/
 const formElementAvatar = document.forms['new-image'];
+const formElementAvatarButton = formElementAvatar.querySelector('.popup__button')
 const linkAvatarCard = formElementAvatar.elements.link;
 
 const title = document.querySelector('.profile__title');
@@ -34,7 +37,6 @@ const profileImage = document.querySelector('.profile__image');
 const popupImageProfile = document.querySelector('.popup_type_new_image_profile');
 popupImageProfile.classList.add('popup_is-animated');
 const popupImageProfileCloseButton = popupImageProfile.querySelector('.popup__close');
-const popupImageProfileOpenButton = document.querySelector('.profile__image');
 
 //Редкатирование профиля
 const popupProfile = document.querySelector('.popup_type_edit');
@@ -64,7 +66,6 @@ popupDelete.classList.add('popup_is-animated');
 const popupDeleteCloseButton = popupDelete.querySelector('.popup__close');
 const popupDeleteButton = popupDelete.querySelector('.popup__button');
 
-
 /*Валидация форм */
 const validationConfig = {
   formSelector: '.popup__form',
@@ -77,58 +78,58 @@ const validationConfig = {
 
 enableValidation(validationConfig);
 
-const clearValidation = (form, validationConfig) => {
-  const inputElement = form.querySelectorAll(validationConfig.inputSelector);
-
-  inputElement.forEach( element => {
-    const errorElement = form.querySelector(`.${element.name}-error`);
-
-    errorElement.classList.remove(validationConfig.errorClass);
-    element.classList.remove(validationConfig.inputErrorClass);
-    errorElement.textContent = '';
-  })
-}
-
 //Обработка форм, событие submit
-const Loading = (button, state) => {
+const setLoading = (button, state) => {
   state ? button.textContent = "Сохранение..." : button.textContent = "Сохранение";
 }
+
+const addInactiveButtonClass = (button) => {
+  button.classList.add(validationConfig.inactiveButtonClass);
+  button.disabled = true;
+}
+
 //Profile submit
 function handleFormProfileSubmit(evt) {
   evt.preventDefault();
-  Loading(formElement.querySelector('.popup__button'), true);
+  setLoading(fornElementProfileButton, true);
 
-  updateUserInfo(nameInput.value,jobInput.value).then( () => {
-    Loading(formElement.querySelector('.popup__button'), false)
-  });
+  updateUserInfo(nameInput.value,jobInput.value)
+    .then(() => {
+      title.textContent = nameInput.value;
+      descripion.textContent = jobInput.value;
 
-  title.textContent = nameInput.value;
-  descripion.textContent = jobInput.value;
-
-  nameInput.value = '';
-  jobInput.value = '';
-
-  clearValidation(popupProfile, validationConfig);
-  closeModal(popupProfile);
+      closeModal(popupProfile);
+      addInactiveButtonClass(fornElementProfileButton);
+    })
+    .catch( err => {
+      console.log(`Ошибка: ${err}`);
+    })
+    .finally( () => {
+      setLoading(fornElementProfileButton, false);
+    });
 }
 
-formElement.addEventListener('submit', handleFormProfileSubmit)
+formElementProfile.addEventListener('submit', handleFormProfileSubmit)
 
 //Card submit
 function handleFormCardSubmitCard(evt) {
   evt.preventDefault();
-  Loading(formElement.querySelector('.popup__button'), true);
+  setLoading(formElementCardButton, true);
 
-  addNewCard(nameInputCard.value, linkInputCard.value).then( card => {
-    cardList.prepend(createCard(card, handleDelete, cardTemplate, openCard, handlelikeCardAdd, userID));
-    Loading(formElement.querySelector('.popup__button'), false);
-  });
-
-  nameInputCard.value = '';
-  linkInputCard.value = '';
-
-  clearValidation(popupCard, validationConfig);
-  closeModal(popupCard);
+  addNewCard(nameInputCard.value, linkInputCard.value)
+    .then( card => {
+      cardList.prepend(createCard(card, handleDelete, cardTemplate, openCard, handlelikeCardAdd, userID));
+      formElementCard.reset();
+    
+      closeModal(popupCard);
+      addInactiveButtonClass(formElementCardButton);
+    })
+    .catch( err => {
+      console.log(`Ошибка: ${err}`);
+    })
+    .finally(()=>{
+      setLoading(formElementCardButton, false);
+    });
 }
 
 formElementCard.addEventListener('submit', handleFormCardSubmitCard);
@@ -136,61 +137,79 @@ formElementCard.addEventListener('submit', handleFormCardSubmitCard);
 //Avatar submit
 function handleFormAvatarSubmit(evt) {
   evt.preventDefault();
-  Loading(formElement.querySelector('.popup__button'), true);
+  setLoading(formElementAvatarButton, true);
 
-  updateProfileImg(linkAvatarCard.value).then( data => {
-    profileImage.style['background-image'] = `url(${data.avatar})`;
-    Loading(formElement.querySelector('.popup__button'), false);
-  });
-  linkAvatarCard.value = '';
+  updateProfileImg(linkAvatarCard.value)
+    .then( data => {
+      profileImage.style['background-image'] = `url(${data.avatar})`;
+      formElementAvatar.reset();
 
-  clearValidation(popupImageProfile, validationConfig);
-  closeModal(popupImageProfile);
+      closeModal(popupImageProfile);
+      addInactiveButtonClass(formElementAvatarButton);
+    })
+    .catch( err => {
+      console.log(`Ошибка: ${err}`);
+    })
+    .finally(()=>{
+      setLoading(formElementAvatarButton, false);
+    });
 }
 
 formElementAvatar.addEventListener('submit', handleFormAvatarSubmit);
 
 // Popup взаимодействие
-const handlePopup = (popupElement, openButton, closeButton) => {
+const handlePopup = (popupElement, openButton, closeButton, form, submitButton) => {
   popupElement.addEventListener('click', event => {
-    if (popupElement === popupProfile) clearValidation(popupElement, validationConfig);
     if (event.target.classList.contains('popup')) closeModal(popupElement); 
   })
 
   openButton.addEventListener('click', () => {
+    clearValidation(form, validationConfig);
+    addInactiveButtonClass(submitButton);
+    form.reset();
+
     if (openButton === popupProfileOpenButton) {
       nameInput.value = title.textContent;
       jobInput.value = descripion.textContent;
     }
-
+    
     openModal(popupElement);
   })
 
   closeButton.addEventListener('click', () => {
-    if (closeButton === popupProfileCloseButton) clearValidation(popupElement, validationConfig);
-
+    
     closeModal(popupElement);
   })
 }
 
 //popup profile
-handlePopup(popupProfile, popupProfileOpenButton, popupProfileCloseButton);
+handlePopup(popupProfile, popupProfileOpenButton, popupProfileCloseButton, formElementProfile, fornElementProfileButton);
 //popup card
-handlePopup(popupCard, popupCardOpenButton, popupCardCloseButton);
+handlePopup(popupCard, popupCardOpenButton, popupCardCloseButton, formElementCard, formElementCardButton);
 //popup avatar
-handlePopup(popupImageProfile, popupImageProfileOpenButton, popupImageProfileCloseButton);
+handlePopup(popupImageProfile, profileImage, popupImageProfileCloseButton, formElementAvatar, formElementAvatarButton);
 
-document.addEventListener('keydown', event => {
-    if (event.key === "+") openModal(popupCard);
-  }
-);
-
+//popup картинки
 popupImageCloseButton.addEventListener('click', () => {
   closeModal(popupImage);
 });
-
 popupImage.addEventListener('click', event => {
   if (event.target.classList.contains('popup')) closeModal(popupImage);
+});
+//popup окна удаления
+popupDeleteCloseButton.addEventListener('click', () => closeModal(popupDelete));
+popupDelete.addEventListener('click', event => {
+  if (event.target.classList.contains('popup')) closeModal(popupDelete); 
+}); 
+popupDeleteButton.addEventListener('click', () => {
+  deleteCard(idDelete)
+  .then( () => {
+    cardDelete.remove();
+    closeModal(popupDelete);
+  })
+  .catch( err => {
+    console.log(`Ошибка: ${err}`);
+  });
 });
 
 // Работа с API
@@ -202,18 +221,10 @@ const openCard = (src, alt) => {
   openModal(popupImage);
 };
 
-/* Карточки заглушки*/
-initialCards.forEach( card => {    
-  cardList.prepend(createCard(card, handleDelete, cardTemplate, openCard, handlelikeCardAdd, userID));
-})
-
 const handleCards = arrayCards => {
-  /*Убираем карточки заглушки*/
-  cardList.innerHTML="";
-
   arrayCards.forEach( card => {    
     cardList.prepend(createCard(card, handleDelete, cardTemplate, openCard, handlelikeCardAdd, userID));
-  })
+  });
 };
 
 const handleProfileInfo = user => {
@@ -225,28 +236,28 @@ const handleProfileInfo = user => {
 };
 
 const handleDelete = (card, id) => {
+  cardDelete = card;
+  idDelete = id;
   openModal(popupDelete);
-
-  popupDeleteButton.addEventListener('click', () => {
-    deleteCard(id).then(() => {
-      card.remove();
-      closeModal(popupDelete);
-    });
-  });
-
-  popupDeleteCloseButton.addEventListener('click', () => closeModal(popupDelete));
-  popupDelete.addEventListener('click', event => {
-    if (event.target.classList.contains('popup')) closeModal(popupDelete); 
-  }) 
 };
 
 const handlelikeCardAdd = (id, likeButton, counter) => {
   if( likeButton.classList.contains('card__like-button_is-active') ) {
-    likeCardAdd(id,'DELETE').then( data => counter.textContent = data.likes.length);
-    likeButton.classList.remove('card__like-button_is-active');
+    likeCardAdd(id,'DELETE').then( data => counter.textContent = data.likes.length)
+      .then( () => {
+        likeButton.classList.remove('card__like-button_is-active');
+      })
+      .catch( err => {
+        console.log(err)
+      });
   } else {
     likeCardAdd(id,'PUT').then( data => counter.textContent = data.likes.length)
-    likeButton.classList.add('card__like-button_is-active');
+      .then( () => {
+        likeButton.classList.add('card__like-button_is-active')
+      })
+      .catch( err => {
+        console.log(err)
+      });
   }
 }
 
