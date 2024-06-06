@@ -1,32 +1,30 @@
 // @todo: Функция создания карточки
-export function createCard(name, link, deleteFunc, tepmplate, openFunc, likeFunc) {
+export function createCard(objCard, deleteFunc, tepmplate, openFunc, likeFunc, userID) {
   const card = tepmplate.querySelector('.card').cloneNode(true);
   const cardImage = card.querySelector('.card__image');
 
   const deleteButton = card.querySelector('.card__delete-button');
-  deleteButton.addEventListener('click', () => deleteFunc(card)); 
+  // Дбовляем/убираем иконку удаления карточки
+  userID === objCard.owner._id ? deleteButton.style.display = 'block' : deleteButton.style.display = 'none';
+  deleteButton.addEventListener('click', () => deleteFunc(card, objCard._id)); 
 
   const likeButton = card.querySelector('.card__like-button');
-  likeButton.addEventListener('click', () => likeFunc(likeButton)); 
+  // Ставим лайк на карточку, если наш id есть в массиве likes
+  if(objCard.likes.some( user => user._id === userID)) likeButton.classList.add('card__like-button_is-active');
 
-  cardImage.src = link;
-  cardImage.alt = `Фотография путишествия. Локация: ${name}`;
+  likeButton.addEventListener('click', () => likeFunc(objCard._id, likeButton, cardLike)); 
+
+  const cardLike = card.querySelector('.card__like-counter');
+  cardLike.textContent = objCard.likes.length;
+
+  cardImage.src = objCard.link;
+  cardImage.alt = `Фотография путишествия. Локация: ${objCard.name}`;
 
   cardImage.onload = () => {
-    cardImage.addEventListener('click', event => openFunc(link, `Фотография путишествия. Локация: ${name}`));
+    cardImage.addEventListener('click', event => openFunc(objCard.link, `Фотография путишествия. Локация: ${objCard.name}`));
   }
 
-  card.querySelector('.card__title').textContent = name;
+  card.querySelector('.card__title').textContent = objCard.name;
 
   return card
-}
-
-// @todo: Функция удаления карточки
-export function deleteCard(card) {
-  card.remove();
-}
-
-// @todo: Функция лайка карточки
-export function likeCard(likeButton) {
-  likeButton.classList.toggle('card__like-button_is-active');
 }

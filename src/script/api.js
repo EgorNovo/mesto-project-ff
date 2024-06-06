@@ -1,65 +1,70 @@
-import { createCard, deleteCard, likeCard } from './card.js'
+const TOKEN   = "f02c1d95-9cbb-4367-a5c4-52452ad0a389";
+const COHORT  = 'wff-cohort-15';
 
-const TOKEN = "f02c1d95-9cbb-4367-a5c4-52452ad0a389";
-let _id = '';
-
-const get = (url) => {
-  return fetch(url, {
-    headers: {
-      authorization: TOKEN
-    }
-  })
-  .then(response => response.json())
+const config = {
+  baseUrl: `https://nomoreparties.co/v1/${COHORT}`,
+  headers: {
+    authorization: TOKEN,
+    'Content-Type': 'application/json'
+  }
 };
 
-export const getProfileInfo = (url) => {
-  return get(url).then( data => {
-    const title = document.querySelector('.profile__title');
-    const descripion = document.querySelector('.profile__description');
+const handleResponse = res => {
+  if (res.ok) return res.json();
 
-    _id = data._id;
-    title.textContent = data.name;
-    descripion.textContent = data.about;
-  })
+  return Promise.reject(`Что-то пошло не так: ${res.status}`);
 }
 
-function openCard(src, alt) {
-  popupImageSrc.src = src;
-  popupImageSrc.alt = alt;
-  popupImageCaption.textContent = alt;
-
-  openModal(popupImage);
+export const getInitialCards = () => {
+  return fetch(`${config.baseUrl}/cards`, { headers: config.headers}).then(handleResponse);
 };
 
-export const getCard = (url) => {
-  get(url).then(arrayCards => {
-    const cardList = document.querySelector(".places__list");
-    const cardTemplate = document.querySelector("#card-template").content;
+export const getUserInfo = () => {
+  return fetch(`${config.baseUrl}/users/me`, { headers: config.headers}).then(handleResponse);
+};
 
-    arrayCards.forEach( card => 
-    cardList.prepend(createCard(card.name, card.link, deleteCard, cardTemplate, openCard, likeCard))
-    );
-  });
-}
-
-/*
-about: "Sailor, researcher"
-avatar: "https://pictures.s3.yandex.net/frontend-developer/common/ava.jpg"
-cohort: "wff-cohort-15"
-name: "Jacques Cousteau"
-_id: "25807f708675e9f48270277b"
-*/
-
-export const updateProfile = (url, data) => {
-  return fetch(url, {
+export const updateUserInfo = (name, about) => {
+  return fetch(`${config.baseUrl}/users/me`, { 
     method: 'PATCH',
-    headers: {
-      authorization: TOKEN,
-      'Content-Type': 'application/json'
-    },
+    headers: config.headers,
     body: JSON.stringify({
-      name: 'Marie Skłodowska Curie',
-      about: 'Physicist and Chemist'
+      name: name,
+      about: about
     })
-  }); 
-}
+  }).then(handleResponse);
+};
+
+export const addNewCard = (name, link) => {
+  return fetch(`${config.baseUrl}/cards`, {
+    method: 'POST',
+    headers: config.headers,
+    body: JSON.stringify({
+      name: name,
+      link: link
+    })
+  }).then(handleResponse);
+};
+
+export const deleteCard = (cardsID) => {
+  return fetch(`${config.baseUrl}/cards/${cardsID}`, {
+    method: 'DELETE',
+    headers: config.headers,
+  }).then(handleResponse);
+};
+
+export const likeCardAdd = (cardsID, state) => {
+  return fetch(`${config.baseUrl}/cards/likes/${cardsID}`, {
+    method: state,
+    headers: config.headers,
+  }).then(handleResponse);
+};
+
+export const updateProfileImg = (link) => {
+  return fetch(`${config.baseUrl}/users/me/avatar`, { 
+    method: 'PATCH',
+    headers: config.headers,
+    body: JSON.stringify({
+      avatar: link
+    })
+  }).then(handleResponse);
+};
